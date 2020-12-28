@@ -2,14 +2,14 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 
-const Person = require("./models/person");
+const Person = require("./server/models/person");
 
-const errorHandler = require("./middlewares/database-error-handler.js");
+const errorHandler = require("./server/middlewares/database-error-handler.js");
 
 const app = express();
 
-app.use(express.static("build"));
 app.use(express.json());
+app.use(express.static("build"));
 app.use(cors());
 morgan.token("body", (req) => JSON.stringify(req.body));
 app.use(

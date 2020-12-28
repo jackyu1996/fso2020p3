@@ -1,0 +1,49 @@
+name: Deployment
+env:
+  DEPLOY_URL: "https://lit-river-95935.herokuapp.com"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: npm install
+        run: npm install
+      - name: lint
+        run: npm run lint
+      - name: build
+        run: npm run build
+      - name: deploy to heroku
+        if: ${{ github.event_name == 'push' }}
+        uses: akhileshns/heroku-deploy@v3.8.8
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_email: "jackyu1996@hotmail.com"
+          heroku_app_name: "lit-river-95935"
+          rollbackonhealthcheckfailed: true
+  tag:
+    needs: deploy
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+      - name: bump version and push tag
+        if: |
+          github.event_name == 'push' &&
+          !contains(join(toJson(github.event.commits.*.message)), '#skip')
+        uses: anothrNick/github-tag-action@eca2b69f9e2c24be7decccd0f15fdb1ea5906598
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: "patch"
